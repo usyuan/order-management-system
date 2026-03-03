@@ -9,7 +9,7 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
-  base: '/order-management-system/',
+  base: '/order-management-system/oms-dist/',
   build: {
     outDir: 'oms-dist',
   },
