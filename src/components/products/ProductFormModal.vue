@@ -97,7 +97,7 @@ function handleSubmit() {
       </div>
 
       <!-- 單價 / 庫存 -->
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">單價 (TWD) <span class="text-red-500">*</span></label>
           <input
@@ -160,13 +160,13 @@ function handleSubmit() {
 
     <template #footer>
       <button
-        class="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+        class="w-full sm:w-auto px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
         @click="emit('close')"
       >
         取消
       </button>
       <button
-        class="px-5 py-2 text-sm rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+        class="w-full sm:w-auto px-5 py-2 text-sm rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
         @click="handleSubmit"
       >
         {{ editTarget ? '儲存變更' : '新增商品' }}

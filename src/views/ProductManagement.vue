@@ -69,7 +69,7 @@ const categoryColorMap: Record<string, string> = {
 <template>
   <div class="space-y-6">
     <!-- 統計卡片 -->
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
       <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
         <p class="text-xs text-gray-500 mb-1">商品總數</p>
         <p class="text-2xl font-bold text-blue-700">{{ store.products.length }}</p>
@@ -86,11 +86,11 @@ const categoryColorMap: Record<string, string> = {
 
     <!-- 工具列 -->
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm">
-      <div class="p-5 border-b border-gray-100 flex items-center justify-between gap-4 flex-wrap">
+      <div class="p-5 border-b border-gray-100 flex items-center justify-between gap-4 flex-col sm:flex-row">
         <h2 class="text-base font-semibold text-gray-800">商品列表</h2>
-        <div class="flex gap-3">
-          <!-- 搜尋 -->
-          <div class="relative">
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <!-- 搜尋：手機滿版 -->
+          <div class="relative w-full sm:flex-1 sm:min-w-0">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -98,40 +98,85 @@ const categoryColorMap: Record<string, string> = {
               v-model="store.searchQuery"
               type="text"
               placeholder="搜尋商品名稱..."
-              class="pl-9 pr-4 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-48"
+              class="pl-9 pr-4 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
             />
           </div>
-          <!-- 分類篩選 -->
-          <select
-            v-model="store.categoryFilter"
-            class="px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-gray-700"
-          >
-            <option value="all">全部分類</option>
-            <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
-          </select>
-          <!-- 新增按鈕 -->
-          <button
-            class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
-            @click="openCreate"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            新增商品
-          </button>
+          <!-- 手機版：分類篩選和新增按鈕平均寬度 -->
+          <div class="flex gap-3 w-full sm:w-auto">
+            <!-- 分類篩選 -->
+            <select
+              v-model="store.categoryFilter"
+              class="flex-1 sm:flex-shrink-0 px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-gray-700 whitespace-nowrap"
+            >
+              <option value="all">全部分類</option>
+              <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+            </select>
+            <!-- 新增按鈕 -->
+            <button
+              class="flex-1 sm:flex-shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap"
+              @click="openCreate"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              新增商品
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- 商品表格 -->
-      <div class="overflow-x-auto">
+      <!-- 手機版：卡片列表 -->
+      <div class="space-y-4 sm:hidden p-2">
+        <div v-for="product in store.filteredProducts" :key="product.id" class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+          <div class="flex items-start gap-3">
+            <img :src="product.imageUrl" :alt="product.name" class="w-12 h-12 rounded-lg object-cover border border-gray-100 flex-shrink-0" @error="(e) => ((e.target as HTMLImageElement).src = 'https://placehold.co/48x48/ccc/white?text=?')" />
+            <div class="min-w-0">
+              <p class="font-medium text-gray-800 product-name">{{ product.name }}</p>
+              <p class="text-xs text-gray-400">{{ product.id }}</p>
+              <div class="mt-2 flex items-center gap-3">
+                <span class="text-sm font-semibold text-gray-800">{{ formatCurrency(product.unitPrice) }}</span>
+                <span class="text-sm" :class="product.stock <= 30 ? 'text-red-500' : 'text-gray-700'">庫存：{{ product.stock }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center justify-between">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="categoryColorMap[product.category] ?? 'bg-gray-100 text-gray-600'">{{ product.category }}</span>
+            <div class="flex items-center gap-2">
+              <button
+                @click="openEdit(product)"
+                aria-label="編輯"
+                class="inline-flex items-center justify-center w-9 h-9 rounded-full text-blue-600 bg-blue-50 hover:text-blue-700 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200 active:bg-blue-100 transition-colors"
+              >
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+                <span class="sr-only">編輯</span>
+              </button>
+              <button
+                @click="confirmDelete(product.id)"
+                aria-label="刪除"
+                class="inline-flex items-center justify-center w-9 h-9 rounded-full text-red-500 bg-red-50 hover:text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-200 active:bg-red-100 transition-colors"
+              >
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+                <span class="sr-only">刪除</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 平板/桌機：表格 -->
+      <div class="overflow-x-auto hidden sm:block">
         <table class="min-w-full text-sm">
           <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
             <tr>
               <th class="px-5 py-3 text-left font-semibold">商品</th>
-              <th class="px-5 py-3 text-left font-semibold">分類</th>
+              <th class="px-5 py-3 text-left font-semibold hidden sm:table-cell">分類</th>
               <th class="px-5 py-3 text-right font-semibold">單價</th>
               <th class="px-5 py-3 text-right font-semibold">庫存量</th>
-              <th class="px-5 py-3 text-left font-semibold">建立日期</th>
+              <th class="px-5 py-3 text-left font-semibold hidden md:table-cell">建立日期</th>
               <th class="px-5 py-3 text-center font-semibold">操作</th>
             </tr>
           </thead>
@@ -143,7 +188,7 @@ const categoryColorMap: Record<string, string> = {
             >
               <!-- 商品名稱 + 圖片 -->
               <td class="px-5 py-3.5">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 min-w-0">
                   <img
                     :src="product.imageUrl"
                     :alt="product.name"
@@ -151,15 +196,15 @@ const categoryColorMap: Record<string, string> = {
                     @error="(e) => ((e.target as HTMLImageElement).src = 'https://placehold.co/40x40/ccc/white?text=?')"
                   />
                   <div>
-                    <p class="font-medium text-gray-800">{{ product.name }}</p>
+                    <p class="font-medium text-gray-800 product-name">{{ product.name }}</p>
                     <p class="text-xs text-gray-400 font-mono">{{ product.id }}</p>
                   </div>
                 </div>
               </td>
               <!-- 分類 -->
-              <td class="px-5 py-3.5">
+              <td class="px-5 py-3.5 hidden sm:table-cell">
                 <span
-                  class="px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"
                   :class="categoryColorMap[product.category] ?? 'bg-gray-100 text-gray-600'"
                 >
                   {{ product.category }}
@@ -180,21 +225,29 @@ const categoryColorMap: Record<string, string> = {
                 <span v-if="product.stock <= 30" class="ml-1 text-xs text-red-400">低庫存</span>
               </td>
               <!-- 建立日期 -->
-              <td class="px-5 py-3.5 text-gray-500">{{ product.createdAt }}</td>
+              <td class="px-5 py-3.5 text-gray-500 hidden md:table-cell">{{ product.createdAt }}</td>
               <!-- 操作 -->
               <td class="px-5 py-3.5 text-center">
                 <div class="flex items-center justify-center gap-2">
                   <button
-                    class="px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                     @click="openEdit(product)"
+                    aria-label="編輯"
+                    class="inline-flex items-center justify-center w-9 h-9 rounded-full text-blue-600 bg-blue-50 hover:text-blue-700 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200 active:bg-blue-100 transition-colors"
                   >
-                    編輯
+                    <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                    <span class="sr-only">編輯</span>
                   </button>
                   <button
-                    class="px-3 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                     @click="confirmDelete(product.id)"
+                    aria-label="刪除"
+                    class="inline-flex items-center justify-center w-9 h-9 rounded-full text-red-500 bg-red-50 hover:text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-200 active:bg-red-100 transition-colors"
                   >
-                    刪除
+                    <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+                    <span class="sr-only">刪除</span>
                   </button>
                 </div>
               </td>
@@ -259,6 +312,9 @@ const categoryColorMap: Record<string, string> = {
 </template>
 
 <style scoped>
+.product-name {
+  word-break: break-word;
+}
 .modal-fade-enter-active,
 .modal-fade-leave-active { transition: opacity 0.2s ease; }
 .modal-fade-enter-from,

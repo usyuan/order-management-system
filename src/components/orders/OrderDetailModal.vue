@@ -29,8 +29,8 @@ function formatCurrency(amount: number): string {
   >
     <div v-if="order" class="space-y-5">
       <!-- 基本資訊 -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="col-span-2 flex items-center gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2 flex items-center gap-3">
           <span class="text-sm text-gray-500">訂單狀態</span>
           <AppBadge :status="order.status" />
         </div>
@@ -38,10 +38,10 @@ function formatCurrency(amount: number): string {
         <InfoRow label="聯絡電話" :value="order.customerPhone" />
         <InfoRow label="電子郵件" :value="order.customerEmail" />
         <InfoRow label="下單日期" :value="order.createdAt" />
-        <div class="col-span-2">
+        <div class="sm:col-span-2">
           <InfoRow label="寄送地址" :value="order.shippingAddress" />
         </div>
-        <div v-if="order.note" class="col-span-2">
+        <div v-if="order.note" class="sm:col-span-2">
           <InfoRow label="備註" :value="order.note" />
         </div>
       </div>

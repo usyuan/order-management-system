@@ -39,7 +39,7 @@ const statusOptions: { label: string; value: OrderStatus | 'all' }[] = [
 <template>
   <div class="space-y-6">
     <!-- 統計卡片 -->
-    <div class="grid grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <StatCard
         label="總訂單數"
         :value="String(store.orders.length)"
@@ -68,11 +68,11 @@ const statusOptions: { label: string; value: OrderStatus | 'all' }[] = [
 
     <!-- 工具列 -->
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm">
-      <div class="p-5 border-b border-gray-100 flex items-center justify-between gap-4 flex-wrap">
+      <div class="p-5 border-b border-gray-100 flex items-center justify-between gap-4 flex-col sm:flex-row">
         <h2 class="text-base font-semibold text-gray-800">訂單列表</h2>
-        <div class="flex gap-3">
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <!-- 搜尋 -->
-          <div class="relative">
+          <div class="relative flex-1 min-w-0">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -80,13 +80,13 @@ const statusOptions: { label: string; value: OrderStatus | 'all' }[] = [
               v-model="store.searchQuery"
               type="text"
               placeholder="搜尋訂單編號..."
-              class="pl-9 pr-4 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-52"
+              class="pl-9 pr-4 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
             />
           </div>
           <!-- 狀態篩選 -->
           <select
             v-model="store.statusFilter"
-            class="px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-gray-700"
+            class="px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-gray-700 flex-shrink-0 whitespace-nowrap"
           >
             <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">
               {{ opt.label }}
@@ -95,41 +95,52 @@ const statusOptions: { label: string; value: OrderStatus | 'all' }[] = [
         </div>
       </div>
 
-      <!-- 訂單表格 -->
-      <div class="overflow-x-auto">
+      <!-- 手機版：卡片列表（可替代表格） -->
+      <div class="space-y-4 sm:hidden p-2">
+        <div v-for="order in store.filteredOrders" :key="order.id" class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-xs text-gray-400 mb-1">訂單編號</p>
+              <p class="font-mono text-sm font-medium text-blue-600 truncate">{{ order.id }}</p>
+              <p class="mt-2 text-sm text-gray-700 truncate">{{ order.customerName }}</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <p class="text-xs text-gray-400">總金額</p>
+              <p class="text-sm font-semibold text-gray-800">{{ formatCurrency(order.totalAmount) }}</p>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <AppBadge :status="order.status" />
+              <p class="text-xs text-gray-500">{{ order.createdAt }}</p>
+            </div>
+            <button class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors" @click="openDetail(order)">查看詳情</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 平板/桌機：表格 -->
+      <div class="overflow-x-auto hidden sm:block">
         <table class="min-w-full text-sm">
           <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
             <tr>
               <th class="px-5 py-3 text-left font-semibold">訂單編號</th>
-              <th class="px-5 py-3 text-left font-semibold">客戶名稱</th>
+              <th class="px-5 py-3 text-left font-semibold hidden sm:table-cell">客戶名稱</th>
               <th class="px-5 py-3 text-right font-semibold">總金額</th>
               <th class="px-5 py-3 text-center font-semibold">訂單狀態</th>
-              <th class="px-5 py-3 text-left font-semibold">下單日期</th>
+              <th class="px-5 py-3 text-left font-semibold hidden md:table-cell">下單日期</th>
               <th class="px-5 py-3 text-center font-semibold">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr
-              v-for="order in store.filteredOrders"
-              :key="order.id"
-              class="hover:bg-blue-50/30 transition-colors"
-            >
-              <td class="px-5 py-3.5 font-mono text-blue-600 font-medium">{{ order.id }}</td>
-              <td class="px-5 py-3.5 text-gray-800">{{ order.customerName }}</td>
-              <td class="px-5 py-3.5 text-right font-semibold text-gray-800">
-                {{ formatCurrency(order.totalAmount) }}
-              </td>
-              <td class="px-5 py-3.5 text-center">
-                <AppBadge :status="order.status" />
-              </td>
-              <td class="px-5 py-3.5 text-gray-500">{{ order.createdAt }}</td>
-              <td class="px-5 py-3.5 text-center">
-                <button
-                  class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                  @click="openDetail(order)"
-                >
-                  查看詳情
-                </button>
+            <tr v-for="order in store.filteredOrders" :key="order.id" class="hover:bg-blue-50/30 transition-colors">
+              <td class="px-5 py-3.5 font-mono text-blue-600 font-medium whitespace-nowrap">{{ order.id }}</td>
+              <td class="px-5 py-3.5 text-gray-800 hidden sm:table-cell">{{ order.customerName }}</td>
+              <td class="px-5 py-3.5 text-right font-semibold text-gray-800 whitespace-nowrap">{{ formatCurrency(order.totalAmount) }}</td>
+              <td class="px-5 py-3.5 text-center"><AppBadge :status="order.status" /></td>
+              <td class="px-5 py-3.5 text-gray-500 hidden md:table-cell">{{ order.createdAt }}</td>
+              <td class="px-5 py-3.5 text-center whitespace-nowrap">
+                <button class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors" @click="openDetail(order)">查看詳情</button>
               </td>
             </tr>
             <tr v-if="store.filteredOrders.length === 0">

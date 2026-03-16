@@ -40,11 +40,16 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         @click.self="emit('close')"
       >
         <div
-          class="relative w-full bg-white rounded-2xl shadow-2xl"
-          :class="maxWidthClass[maxWidth]"
+          :class="[
+            'relative w-full bg-white rounded-2xl shadow-2xl',
+            maxWidthClass[maxWidth],
+            'overflow-y-auto'
+          ]"
         >
           <!-- Header -->
-          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div
+            class="sticky top-0 z-10 bg-white flex items-center justify-between px-6 py-5 border-b border-gray-100"
+          >
             <h2 class="text-lg font-semibold text-gray-800">{{ title }}</h2>
             <button
               class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
@@ -56,11 +61,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             </button>
           </div>
           <!-- Content -->
-          <div class="px-6 py-4 max-h-[75vh] overflow-y-auto">
+          <div
+            class="px-6 py-5 overflow-y-auto"
+            style="max-height: calc(90vh - 7rem);"
+          >
             <slot />
           </div>
           <!-- Footer (optional) -->
-          <div v-if="$slots.footer" class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+          <div
+            v-if="$slots.footer"
+            class="px-6 py-4 border-t border-gray-100 flex sm:flex-row sm:justify-end gap-3"
+          >
             <slot name="footer" />
           </div>
         </div>

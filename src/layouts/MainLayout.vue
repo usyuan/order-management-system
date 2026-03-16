@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -23,6 +23,12 @@ const navItems = [
   },
 ]
 
+const isSidebarOpen = ref(false)
+
+function toggleSidebar() {
+  isSidebarOpen.value = !isSidebarOpen.value
+}
+
 const activeTitle = computed(
   () => navItems.find((n) => route.path.startsWith(n.path))?.name ?? '系統'
 )
@@ -30,8 +36,17 @@ const activeTitle = computed(
 
 <template>
   <div class="min-h-screen bg-gray-50 flex">
+    <!-- Mobile overlay -->
+    <div v-if="isSidebarOpen" class="fixed inset-0 bg-black/40 z-30 lg:hidden" @click="isSidebarOpen = false"></div>
+
     <!-- Sidebar -->
-    <aside class="w-60 bg-white border-r border-gray-200 flex flex-col fixed h-full z-20 shadow-sm">
+    <aside
+      :class="[
+        'bg-white border-r border-gray-200 flex flex-col fixed inset-y-0 left-0 z-40 shadow-sm w-56 transition-transform duration-200',
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        'lg:translate-x-0 lg:static lg:z-20'
+      ]"
+    >
       <!-- Brand -->
       <div class="h-16 flex items-center px-6 border-b border-gray-100">
         <div class="flex items-center gap-2.5">
@@ -82,15 +97,25 @@ const activeTitle = computed(
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 ml-60 flex flex-col min-h-screen">
+    <div class="flex-1 flex flex-col min-h-screen">
       <!-- Top Bar -->
-      <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 sticky top-0 z-10">
-        <h1 class="text-lg font-semibold text-gray-800">{{ activeTitle }}</h1>
+      <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
+        <div class="flex items-center gap-3">
+          <!-- Mobile + Tablet hamburger -->
+          <button class="p-2 rounded-md lg:hidden" @click="toggleSidebar" aria-label="Toggle menu">
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 class="text-lg font-semibold text-gray-800">{{ activeTitle }}</h1>
+        </div>
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 p-8">
-        <RouterView />
+      <main class="flex-1 p-2 md:p-4 lg:p-8">
+        <div class="w-full px-2 md:px-4 lg:px-8">
+          <RouterView />
+        </div>
       </main>
     </div>
   </div>
